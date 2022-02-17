@@ -1,4 +1,4 @@
-# 11C.03.01 - Improved Color Selector
+# 11C.03.01 -Color Palette Designer
 
 ## Link
 
