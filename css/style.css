@@ -1,9 +1,9 @@
 :root {
-	--firstColor: rgb(163, 80, 80);
-	--secondColor: rgb(216, 87, 87);
-	--thirdColor: rgb(255, 0, 0);
-	--fourthColor: rgb(101, 67, 67);
-	--selectedColor: rgb(151, 48, 48);
+	--firstColor: rgb(255, 255, 255);
+	--secondColor: rgb(255, 255, 255);
+	--thirdColor: rgb(255, 255, 255);
+	--fourthColor: rgb(255, 255, 255);
+	--selectedColor: rgb(255, 255, 255);
 }
 
 * {

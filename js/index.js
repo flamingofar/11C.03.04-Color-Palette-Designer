@@ -2,26 +2,23 @@
 ("use strict;");
 
 const colorPicker = document.querySelector("#color");
-const hexV = document.querySelector(".hex");
-const rgbV = document.querySelector(".rgb");
-const hslV = document.querySelector(".hsl");
-const cssV = document.querySelector(".css");
 
 window.addEventListener("DOMContentLoaded", setup);
 // Setup
 function setup() {
-	hexV.textContent = colorPicker.value;
-	rgbV.textContent = "rgb: 255, 255, 255";
-	hslV.textContent = "hsl: 0, 0, 100";
-	cssV.textContent = "rgb(0, 0, 0)";
+	document.querySelector(".hex").textContent = colorPicker.value;
+	document.querySelector(".rgb").textContent = "rgb: 255, 255, 255";
+	document.querySelector(".hsl").textContent = "hsl: 0, 0, 100";
+	document.querySelector(".css").textContent = "rgb(0, 0, 0)";
 	getColors();
 }
 
 //************************ MODEL ************************
 // Get HEX color values
 function getColors() {
-	let hexColorValue, rgbColorValue;
+	let hexColorValue, rgbColorValue, cssColorValue, hslColorValue;
 	colorPicker.addEventListener("input", (e) => {
+		let schemeValue = document.querySelector("#colorscheme").value;
 		let colorPickValue = e.target.value;
 
 		// HEX Value
@@ -32,54 +29,51 @@ function getColors() {
 		cssColorValue = rgbToCss(rgbColorValue);
 		//HSL Value
 		hslColorValue = rgbToHsl(rgbColorValue.r, rgbColorValue.g, rgbColorValue.b);
-
-		displayColors(hexColorValue, rgbColorValue, cssColorValue, hslColorValue);
+		document.querySelector("#colorscheme");
+		displayColors(hexColorValue, rgbColorValue, cssColorValue, hslColorValue, schemeValue);
 	});
+	// document.querySelector("#colorscheme").addEventListener("input", (e) => {
+	// 	let schemeValue = e.target.value;
+	// 	displayColors(hexColorValue, rgbColorValue, cssColorValue, hslColorValue, schemeValue);
+	// });
 }
 
 //************************ VIEW ************************
-function displayColors(hex, rgb, css, hsl) {
-	// Show Values
-	displayHex(hex);
-	displayRgb(rgb);
-	displayHsl(hsl);
-	displayCss(css);
-
+function displayColors(hex, rgb, css, hsl, schemeValue) {
 	//Set body background color
-	const body = document.querySelector("body");
-	body.style.backgroundColor = hex;
+	document.querySelector(".color3").style.backgroundColor = hex;
+	// Display base color
+	document.querySelector(".hex").textContent = hex;
+	document.querySelector(".rgb").textContent = `rgb: ${rgb.r}, ${rgb.g},${rgb.b}`;
+	document.querySelector(".hsl").textContent = `hsl: ${hsl.h}, ${hsl.s}, ${hsl.l}`;
+	document.querySelector(".css").textContent = `css: rgb(${css.r}, ${css.g}, ${css.b})`;
+	document.querySelector(".css").textContent = `css: rgb(${css.r}, ${css.g}, ${css.b})`;
+	colorThreeText(hsl);
+
+	// Show Values based on color scheme
+	switch (schemeValue) {
+		case "0":
+			displayAnalogous(hsl);
+			break;
+		case "1":
+			displayMonochromatic(hsl);
+			break;
+		case "2":
+			displayTriad(hsl);
+			break;
+		case "3":
+			displayComplementary(hsl);
+			break;
+		case "4":
+			displayCompound(hsl);
+			break;
+		case "5":
+			displayShades(hsl);
+			break;
+	}
 }
 
-//************************ Controllor ************************
-
-/*
- * Display HEX
- */
-function displayHex(hex) {
-	hexV.textContent = hex;
-}
-
-/*
- * Display RGB
- */
-function displayRgb(rgb) {
-	rgbV.textContent = `rgb: ${rgb.r}, ${rgb.g},${rgb.b}`;
-}
-
-/*
- * DISPLAY HSL
- */
-function displayHsl(hsl) {
-	hslV.textContent = `hsl: ${hsl.h}, ${hsl.s}, ${hsl.l}`;
-}
-
-/*
- * Display CSS
- */
-function displayCss(css) {
-	cssV.textContent = `css: rgb(${css.r}, ${css.g}, ${css.b})`;
-}
-
+//************************ Conversion ************************
 /*
  * HEX to RGB
  */
@@ -116,7 +110,6 @@ function rgbToCss(rgb) {
 	g = rgb.g;
 	b = rgb.b;
 	return { r, g, b };
-	// console.log(`RGB Values are: r:${r}, g:${g}, b:${b}`);
 }
 
 /*
@@ -158,4 +151,251 @@ function rgbToHsl(r, g, b) {
 	l *= 100;
 
 	return { h: Math.floor(h), s: Math.floor(s), l: Math.floor(l) };
+}
+
+/*
+ * HSL Convertion
+ */
+function hslToRgb(hslObj) {
+	h = hslObj.h;
+	s = hslObj.s / 100;
+	l = hslObj.l / 100;
+
+	let c = (1 - Math.abs(2 * l - 1)) * s,
+		x = c * (1 - Math.abs(((h / 60) % 2) - 1)),
+		m = l - c / 2,
+		r = 0,
+		g = 0,
+		b = 0;
+	if (0 <= h && h < 60) {
+		r = c;
+		g = x;
+		b = 0;
+	} else if (60 <= h && h < 120) {
+		r = x;
+		g = c;
+		b = 0;
+	} else if (120 <= h && h < 180) {
+		r = 0;
+		g = c;
+		b = x;
+	} else if (180 <= h && h < 240) {
+		r = 0;
+		g = x;
+		b = c;
+	} else if (240 <= h && h < 300) {
+		r = x;
+		g = 0;
+		b = c;
+	} else if (300 <= h && h < 360) {
+		r = c;
+		g = 0;
+		b = x;
+	}
+	r = Math.round((r + m) * 255);
+	g = Math.round((g + m) * 255);
+	b = Math.round((b + m) * 255);
+
+	return { r, g, b };
+}
+
+//************************ Color Schemes ************************
+
+function cleanUpHsl(hslObj) {
+	if (hslObj.h > 360) {
+		hslObj.h -= 360;
+	}
+	if (hslObj.h < 0) {
+		hslObj.h += 360;
+	}
+	if (hslObj.s > 100) {
+		hslObj.s = 100;
+	}
+	if (hslObj.s < 0) {
+		hslObj.s *= -1;
+	}
+	if (hslObj.l > 100) {
+		hslObj.l = 100;
+	}
+	if (hslObj.l < 0) {
+		hslObj.l *= -1;
+	}
+	return hslObj;
+}
+// Analogous
+function displayAnalogous(hsl) {
+	let newHsl = calcAnalogous(hsl);
+	/* ********************** SET BACKGROUND COLOR ********************** */
+	document.querySelector(".color1").style.setProperty("--firstColor", `hsl(${newHsl[0].h}, ${newHsl[0].s}%, ${newHsl[0].l}%)`);
+	document.querySelector(".color2").style.setProperty("--secondColor", `hsl(${newHsl[1].h}, ${newHsl[1].s}%, ${newHsl[1].l}%)`);
+	document.querySelector(".color4").style.setProperty("--thirdColor", `hsl(${newHsl[2].h}, ${newHsl[2].s}%, ${newHsl[2].l}%)`);
+	document.querySelector(".color5").style.setProperty("--fourthColor", `hsl(${newHsl[3].h}, ${newHsl[3].s}%, ${newHsl[3].l}%)`);
+	/* ********************** SET COLOR TEXT ********************** */
+	setAllColorTexts(newHsl, hsl);
+}
+
+function calcAnalogous(hslObj) {
+	let hsl = cleanUpHsl(hslObj);
+	let hslArr = [];
+	hslArr.push({ h: hsl.h / 4, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h / 2, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h / 2, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h / 4, s: hsl.s, l: hsl.l });
+	return hslArr;
+}
+// Monochromatic
+function displayMonochromatic(hsl) {
+	let newHsl = calcMonochromatic(hsl);
+	/* ********************** SET BACKGROUND COLOR ********************** */
+	document.querySelector(".color1").style.setProperty("--firstColor", `hsl(${newHsl[0].h}, ${newHsl[0].s}%, ${newHsl[0].l}%)`);
+	document.querySelector(".color2").style.setProperty("--secondColor", `hsl(${newHsl[1].h}, ${newHsl[1].s}%, ${newHsl[1].l}%)`);
+	document.querySelector(".color4").style.setProperty("--thirdColor", `hsl(${newHsl[2].h}, ${newHsl[2].s}%, ${newHsl[2].l}%)`);
+	document.querySelector(".color5").style.setProperty("--fourthColor", `hsl(${newHsl[3].h}, ${newHsl[3].s}%, ${newHsl[3].l}%)`);
+	/* ********************** SET COLOR TEXT ********************** */
+	colorOneText(newHsl);
+	colorTwoText(newHsl);
+	colorFourText(newHsl);
+	colorFiveText(newHsl);
+}
+
+function calcMonochromatic(hsl) {
+	let hslArr = [];
+	hslArr.push({ h: hsl.h, s: hsl.s / 2, l: hsl.l });
+	hslArr.push({ h: hsl.h, s: hsl.s / 3, l: hsl.l });
+	hslArr.push({ h: hsl.h, s: hsl.s, l: hsl.l / 2 });
+	hslArr.push({ h: hsl.h, s: hsl.s, l: hsl.l / 3 });
+	return hslArr;
+}
+//TODO Triad
+function displayTriad(hsl) {}
+function calcTriad(hsl) {}
+// Complementary
+function displayComplementary(hsl) {
+	let newHsl = calcComplementary(hsl);
+	/* ********************** SET BACKGROUND COLOR ********************** */
+	document.querySelector(".color1").style.setProperty("--firstColor", `hsl(${newHsl[0].h}, ${newHsl[0].s}%, ${newHsl[0].l}%)`);
+	document.querySelector(".color2").style.setProperty("--secondColor", `hsl(${newHsl[1].h}, ${newHsl[1].s}%, ${newHsl[1].l}%)`);
+	document.querySelector(".color4").style.setProperty("--thirdColor", `hsl(${newHsl[2].h}, ${newHsl[2].s}%, ${newHsl[2].l}%)`);
+	document.querySelector(".color5").style.setProperty("--fourthColor", `hsl(${newHsl[3].h}, ${newHsl[3].s}%, ${newHsl[3].l}%)`);
+	/* ********************** SET COLOR TEXT ********************** */
+	colorOneText(newHsl);
+	colorTwoText(newHsl);
+	colorFourText(newHsl);
+	colorFiveText(newHsl);
+}
+function calcComplementary(hsl) {
+	let hslArr = [];
+	hslArr.push({ h: hsl.h - 90, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h - 180, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h + 90, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h - 180, s: hsl.s, l: hsl.l });
+	return hslArr;
+}
+// Compound
+function displayCompound(hsl) {
+	let newHsl = calcCompound(hsl);
+	/* ********************** SET BACKGROUND COLOR ********************** */
+	document.querySelector(".color1").style.setProperty("--firstColor", `hsl(${newHsl[0].h}, ${newHsl[0].s}%, ${newHsl[0].l}%)`);
+	document.querySelector(".color2").style.setProperty("--secondColor", `hsl(${newHsl[1].h}, ${newHsl[1].s}%, ${newHsl[1].l}%)`);
+	document.querySelector(".color4").style.setProperty("--thirdColor", `hsl(${newHsl[2].h}, ${newHsl[2].s}%, ${newHsl[2].l}%)`);
+	document.querySelector(".color5").style.setProperty("--fourthColor", `hsl(${newHsl[3].h}, ${newHsl[3].s}%, ${newHsl[3].l}%)`);
+	/* ********************** SET COLOR TEXT ********************** */
+	colorOneText(newHsl);
+	colorTwoText(newHsl);
+	colorFourText(newHsl);
+	colorFiveText(newHsl);
+}
+function calcCompound(hsl) {
+	let hslArr = [];
+	hslArr.push({ h: hsl.h / 2, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h - 180, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h / 4, s: hsl.s, l: hsl.l });
+	hslArr.push({ h: hsl.h - 180, s: hsl.s, l: hsl.l });
+	return hslArr;
+}
+// Shades
+function displayShades(hsl) {
+	let newHsl = calcShades(hsl);
+	/* ********************** SET BACKGROUND COLOR ********************** */
+	document.querySelector(".color1").style.setProperty("--firstColor", `hsl(${newHsl[0].h}, ${newHsl[0].s}%, ${newHsl[0].l}%)`);
+	document.querySelector(".color2").style.setProperty("--secondColor", `hsl(${newHsl[1].h}, ${newHsl[1].s}%, ${newHsl[1].l}%)`);
+	document.querySelector(".color4").style.setProperty("--thirdColor", `hsl(${newHsl[2].h}, ${newHsl[2].s}%, ${newHsl[2].l}%)`);
+	document.querySelector(".color5").style.setProperty("--fourthColor", `hsl(${newHsl[3].h}, ${newHsl[3].s}%, ${newHsl[3].l}%)`);
+	/* ********************** SET COLOR TEXT ********************** */
+	colorOneText(newHsl);
+	colorTwoText(newHsl);
+	colorFourText(newHsl);
+	colorFiveText(newHsl);
+}
+function calcShades(hsl) {
+	let hslArr = [];
+	hslArr.push({ h: hsl.h, s: hsl.s, l: hsl.l / 2 });
+	hslArr.push({ h: hsl.h, s: hsl.s, l: hsl.l / 2.5 });
+	hslArr.push({ h: hsl.h, s: hsl.s, l: hsl.l / 3 });
+	hslArr.push({ h: hsl.h, s: hsl.s, l: hsl.l / 3.5 });
+	return hslArr;
+}
+
+/* ********************** SET INDIVIDUEL COLOR TEXT ********************** */
+function setAllColorTexts(newHsl, singleHsl) {
+	colorOneText(newHsl);
+	colorTwoText(newHsl);
+	colorThreeText(singleHsl);
+	colorFourText(newHsl);
+	colorFiveText(newHsl);
+}
+function colorOneText(newHsl) {
+	let hex, rgb, css, hsl;
+	rgb = hslToRgb(newHsl[0]);
+	hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+	hex = rgbToHex(rgb);
+	css = rgbToCss(rgb);
+	document.querySelector(".color1 p:first-child").textContent = hex;
+	document.querySelector(".color1 p:nth-child(2)").textContent = `RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`;
+	document.querySelector(".color1 p:nth-child(3)").textContent = `HSL: ${hsl.h}, ${hsl.s}, ${hsl.l}`;
+	document.querySelector(".color1 p:last-child").textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+}
+function colorTwoText(newHsl) {
+	let hex, rgb, css;
+	rgb = hslToRgb(newHsl[1]);
+	hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+	hex = rgbToHex(rgb);
+	css = rgbToCss(rgb);
+	document.querySelector(".color2 p:first-child").textContent = hex;
+	document.querySelector(".color2 p:nth-child(2)").textContent = `RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`;
+	document.querySelector(".color2 p:nth-child(3)").textContent = `HSL: ${hsl.h}, ${hsl.s}, ${hsl.l}`;
+	document.querySelector(".color2 p:last-child").textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+}
+function colorThreeText(singleHsl) {
+	let hex, rgb, css;
+	rgb = hslToRgb(singleHsl);
+	hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+	hex = rgbToHex(rgb);
+	css = rgbToCss(rgb);
+	document.querySelector(".color3 p:first-child").textContent = hex;
+	document.querySelector(".color3 p:nth-child(2)").textContent = `RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`;
+	document.querySelector(".color3 p:nth-child(3)").textContent = `HSL: ${hsl.h}, ${hsl.s}, ${hsl.l}`;
+	document.querySelector(".color3 p:last-child").textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+}
+function colorFourText(newHsl) {
+	let hex, rgb, css;
+	rgb = hslToRgb(newHsl[2]);
+	hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+	hex = rgbToHex(rgb);
+	css = rgbToCss(rgb);
+	document.querySelector(".color4 p:first-child").textContent = hex;
+	document.querySelector(".color4 p:nth-child(2)").textContent = `RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`;
+	document.querySelector(".color4 p:nth-child(3)").textContent = `HSL: ${hsl.h}, ${hsl.s}, ${hsl.l}`;
+	document.querySelector(".color4 p:last-child").textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+}
+function colorFiveText(newHsl) {
+	let hex, rgb, css;
+	rgb = hslToRgb(newHsl[3]);
+	hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+	hex = rgbToHex(rgb);
+	css = rgbToCss(rgb);
+	document.querySelector(".color5 p:first-child").textContent = hex;
+	document.querySelector(".color5 p:nth-child(2)").textContent = `RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`;
+	document.querySelector(".color5 p:nth-child(3)").textContent = `HSL: ${hsl.h}, ${hsl.s}, ${hsl.l}`;
+	document.querySelector(".color5 p:last-child").textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
 }
