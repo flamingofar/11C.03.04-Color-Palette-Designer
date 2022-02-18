@@ -37,6 +37,14 @@ p {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+}
+
+.color > * {
+	width: 100%;
+	margin-inline: 10%;
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
 	flex-direction: column;
 }
 
